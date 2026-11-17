@@ -17,7 +17,7 @@ def test_get_all_posts_returns_100_items(base_url):
     response = requests.get(f"{base_url}/posts", timeout=10)
     posts = response.json()
 
-    assert len(posts) == 99
+    assert len(posts) == 100
 
 
 @pytest.mark.parametrize("post_id", [1, 50, 100])
