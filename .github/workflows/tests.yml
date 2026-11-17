@@ -1,0 +1,49 @@
+name: API Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:          # lets you run it manually from the Actions tab
+
+permissions:
+  contents: read
+  checks: write               # needed to publish the test summary
+  pull-requests: write        # needed to comment on pull requests
+
+jobs:
+  test:
+    runs-on: ubuntu-latest    # GitHub gives you a fresh Linux computer for each run
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip          # speeds up future runs by reusing downloaded packages
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests and create reports
+        run: |
+          mkdir -p reports
+          pytest --html=reports/report.html --self-contained-html --junitxml=reports/junit.xml
+
+      - name: Publish test summary in GitHub
+        if: always()          # run this step even if tests failed
+        uses: dorny/test-reporter@v1
+        with:
+          name: API Test Results
+          path: reports/junit.xml
+          reporter: java-junit
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: reports/
